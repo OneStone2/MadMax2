@@ -5,7 +5,7 @@
 * Write the name of your player and save this file
 * with the same name and .cc extension.
 */
-#define PLAYER_NAME Vox1
+#define PLAYER_NAME Vox2
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
 // sensible. It is provided just to illustrate how to use the API.
@@ -39,6 +39,7 @@ struct PLAYER_NAME : public Player {
 	VVI dist_a; //distancia per ser atropellat
 	VVI dist_f; //distancia a fuel
 	VVI dist_u; //distancia a una victima
+	VVI cities; //quines caselles son cada ciutat
 
 	bool valid(int i, int j) {
 		if (i < 0 or j < 0) return false;
@@ -74,6 +75,21 @@ struct PLAYER_NAME : public Player {
 		}
 	}
 	
+	void bfs2(queue<ii>& q, VVI& v, int next) {
+		while (q.size() > 0) {
+			int x0 = q.front().first, y0 = q.front().second;
+			int w0 = v[x0][y0];
+			q.pop();
+			for (int i = 0; i < 8; ++i) {
+				int x = x0 + dx[i], y = y0 + dy[i];
+				if (v[x][y] == -1 and cell(x, y).type == City) {
+					v[x][y] = next;
+					q.push({x, y});
+				}
+			}
+		}
+	}
+	
 	void dijkstra(priority_queue<pair<int, ii> >& q, VVI& v, bool orig) {
 		while (q.size() > 0) {
 			int x0 = q.top().second.first, y0 = q.top().second.second;
@@ -103,6 +119,8 @@ struct PLAYER_NAME : public Player {
 			dist_f = VVI(rows(), VI(cols(), -1000));
 			dist_w = VVI(rows(), VI(cols(), -1000));
 			dist_c = VVI(rows(), VI(cols(), -1000));
+			cities = VVI(rows(), VI(cols(), -1));
+			int next = 0;
 			queue<ii> qw, qc;
 			priority_queue<pair<int, ii> > qf;
 			for (int i = 0; i < rows(); ++i) {
@@ -116,6 +134,13 @@ struct PLAYER_NAME : public Player {
 					else if (c.type == City) {
 						dist_c[i][j] = 0;
 						qc.push({i, j});
+						if (cities[i][j] == -1) {
+							cities[i][j] = next;
+							queue<ii> q;
+							q.push({i, j});
+							bfs2(q, cities, next);
+							++next;
+						}
 					}
 					else if (c.type == Station) {
 						dist_f[i][j] = 0;
@@ -126,7 +151,6 @@ struct PLAYER_NAME : public Player {
 			bfs(qw, dist_w);
 			bfs(qc, dist_c);
 			dijkstra(qf, dist_f, 1);
-			
 		}
 		if (round()% 4 == me()) {
 			dist_uc = VVI(rows(), VI(cols(), -1000));
@@ -187,7 +211,14 @@ struct PLAYER_NAME : public Player {
 			int x0 = u.pos.i, y0 = u.pos.j;
 			occupied.insert({x0, y0});
 		}
+		VI cc(nb_cities(), 0);
+		for (int j = 0; j < n; ++j) {
+			Unit u = unit(w[j]);
+			int x0 = u.pos.i, y0 = u.pos.j;
+			if (cities[x0][y0] > -1) cc[cities[x0][y0]]++;
+		}
 		for (int i = 0; i < n; ++i) {
+			
 			Unit u = unit(w[i]);
 			int x0 = u.pos.i, y0 = u.pos.j;
 			int best = 8, value = -99999999;
@@ -204,6 +235,11 @@ struct PLAYER_NAME : public Player {
 					if (u.water < 20) score += dist_w[x][y];
 					else if (u.food < 20) score =+ dist_c[x][y];
 					else score += 4*dist_uc[x][y] - dist_a[x][y];
+					if (cell(x, y).type == City) {
+						int ci = cities[x][y];
+						if (cell(x, y).owner != me()) score += 40;
+						else if (cc[ci] > 2 or cc[ci] > 1 and cities[x0][y0] != ci) score -= 10000;
+					}
 					if (score > value) {
 						best = j;
 						value = score;
@@ -212,6 +248,9 @@ struct PLAYER_NAME : public Player {
 				}
 			}
 			occupied.insert({x1, y1});
+			int c0 = cities[x0][y0], c1 = cities[x1][y1];
+			if (c0 > -1) cc[c0]--;
+			if (c1 > -1) cc[c1]--;
 			command(w[i], Dir(best));
 		}
 	}
@@ -276,9 +315,9 @@ struct PLAYER_NAME : public Player {
 	* Play method, invoked once per each round.
 	*/
 	void play () {
-	init();
-	move_warriors();
-	move_cars();
+		init();
+		move_warriors();
+		move_cars();
 	}
 };
 

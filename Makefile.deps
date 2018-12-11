@@ -2,11 +2,15 @@ AIDemo.o: AIDemo.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
 AINull.o: AINull.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
-AIVox0.o: AIVox0.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
- State.hh Action.hh Random.hh Registry.hh
-AIVox1.o: AIVox1.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
- State.hh Action.hh Random.hh Registry.hh
 AIVox2.o: AIVox2.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
+ State.hh Action.hh Random.hh Registry.hh
+AIVox3b.o: AIVox3b.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
+ State.hh Action.hh Random.hh Registry.hh
+AIVox3c.o: AIVox3c.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
+ State.hh Action.hh Random.hh Registry.hh
+AIVox4.o: AIVox4.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
+ State.hh Action.hh Random.hh Registry.hh
+AIVox4b.o: AIVox4b.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
 Action.o: Action.cc Action.hh Structs.hh Utils.hh
 Board.o: Board.cc Board.hh Info.hh Settings.hh Structs.hh Utils.hh \

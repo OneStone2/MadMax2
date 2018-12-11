@@ -15,7 +15,7 @@
 DUMMY_OBJ = AIDummy.o
 
 # Add here any extra .o player files you want to link to the executable
-EXTRA_OBJS = AINil12.o AIStockfish7.o
+EXTRA_OBJS = AINil14.o
 
 # Config
 OPTIMIZE = 2 # Optimization level (0 to 3)

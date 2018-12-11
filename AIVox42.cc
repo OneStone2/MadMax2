@@ -5,7 +5,7 @@
 * Write the name of your player and save this file
 * with the same name and .cc extension.
 */
-#define PLAYER_NAME Vox4b
+#define PLAYER_NAME Vox4
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
 // sensible. It is provided just to illustrate how to use the API.
@@ -35,7 +35,6 @@ struct PLAYER_NAME : public Player {
 	int dx[9] = {1, 1, 0, -1, -1, -1, 0, 1, 0};
 	int dy[9] = {0, 1, 1, 1, 0, -1, -1, -1, 0};
 	map<int, int> kind;
-	
 	
 	VVI board; //tauler
 	VVI dist_w; //distancia a aigua
@@ -373,13 +372,10 @@ struct PLAYER_NAME : public Player {
 						if (unit(k.id).player == me()) score = -100000000;
 						else score = 100000000;
 					}
-					else if (u.food < 30) {
-						score = dist_f[x][y];
-						if (k.type != Road) score -= 20;
-					}
+					else if (u.food < 30) score = dist_f[x][y];
 					else {
 						score = dist_u[x][y];
-						if (k.type != Road) score -= 20;
+						if (k.type != Road and score < -12) score -= 4;
 						if (opt.first == x and opt.second == y) score += 5000;
 					}
 					if (score > value) {

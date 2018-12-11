@@ -5,7 +5,7 @@
 * Write the name of your player and save this file
 * with the same name and .cc extension.
 */
-#define PLAYER_NAME Vox4b
+#define PLAYER_NAME Vox3d
 
 // DISCLAIMER: The following Demo player is *not* meant to do anything
 // sensible. It is provided just to illustrate how to use the API.
@@ -27,11 +27,7 @@ struct PLAYER_NAME : public Player {
 
 	typedef vector<int> VI;
 	typedef vector<VI> VVI;
-	typedef vector<VVI> VVVI;
 	typedef pair<int, int> ii;
-	typedef vector<ii> VP;
-	typedef vector<VP> VVP;
-	typedef vector<VVP> VVVP;
 	int dx[9] = {1, 1, 0, -1, -1, -1, 0, 1, 0};
 	int dy[9] = {0, 1, 1, 1, 0, -1, -1, -1, 0};
 	map<int, int> kind;
@@ -97,7 +93,7 @@ struct PLAYER_NAME : public Player {
 		}
 	}
 	
-	void dijkstra(priority_queue<pair<int, ii> >& q, VVI& v) {
+	void dijkstra(priority_queue<pair<int, ii> >& q, VVI& v, bool orig) {
 		while (q.size() > 0) {
 			int x0 = q.top().second.first, y0 = q.top().second.second;
 			int w0 = v[x0][y0], w1 = q.top().first;
@@ -108,33 +104,9 @@ struct PLAYER_NAME : public Player {
 					if (passable_c(x, y)) {
 						int w = v[x][y];
 						int w2 = w0;
-						if (board[x0][y0] == Road) --w2;
+						if ((orig and board[x0][y0] == Road) or (!orig and board[x][y] == Road)) --w2;
 						else w2 -= 4;
 						if (w2 > w) {
-							v[x][y] = w2;
-							q.push({w2, {x, y}});
-						}
-					}
-				}
-			}
-		}
-	}
-	
-	void dijkstra2(priority_queue<pair<int, ii> >& q, VVI& v, VVP& l) {
-		while (q.size() > 0) {
-			int x0 = q.top().second.first, y0 = q.top().second.second;
-			int w0 = v[x0][y0], w1 = q.top().first;
-			q.pop();
-			if (w0 == w1 and w1 > -30) {
-				for (int i = 0; i < 8; ++i) {
-					int x = x0 + dx[i], y = y0 + dy[i];
-					if (passable_c(x, y)) {
-						int w = v[x][y];
-						int w2 = w0;
-						if (board[x0][y0] == Road) --w2;
-						else w2 -= 4;
-						if (w2 > w) {
-							l[x][y] = {x0, y0};
 							v[x][y] = w2;
 							q.push({w2, {x, y}});
 						}
@@ -181,7 +153,7 @@ struct PLAYER_NAME : public Player {
 			}
 			bfs(qw, dist_w);
 			bfs(qc, dist_c);
-			dijkstra(qf, dist_f);
+			dijkstra(qf, dist_f, 1);
 			next = -1;
 			for (int i = 0; i < rows(); ++i) {
 				for (int j = 0; j < cols(); ++j) {
@@ -216,7 +188,7 @@ struct PLAYER_NAME : public Player {
 				}
 			}
 		}
-		dijkstra(qu, dist_u);
+		dijkstra(qu, dist_u, 0);
 		if (round()% 4 == me()) {
 			dist_uc = VVI(rows(), VI(cols(), -1000));
 			dist_a = VVI(rows(), VI(cols(), -1000));
@@ -246,7 +218,7 @@ struct PLAYER_NAME : public Player {
 				}
 			}
 			bfs(quc, dist_uc);
-			dijkstra(qa, dist_a);
+			dijkstra(qa, dist_a, 1);
 			
 		}
 	}
@@ -310,76 +282,41 @@ struct PLAYER_NAME : public Player {
 	}
 
 	void move_cars() {
-		VVI dist(rows(), VI(cols(), -1000));
+		map<ii, int> occupied;
 		for (int i = 0; i < 4; ++i) {
 			VI ca = cars(i);
 			for (int j = 0; j < ca.size(); ++j) {
 				Unit u = unit(ca[j]);
 				int x0 = u.pos.i, y0 = u.pos.j;
-				if (i == me()) dist[x0][y0] = 1;
-				else {
-					for (int x = x0-1; x <= x0+1; ++x) {
-						for (int y = y0-1; y <= y0+1; ++y) {
-							if (valid(x, y)) dist[x][y] = 1;
-						}
+				for (int x = x0-1; x <= x0+1; ++x) {
+					for (int y = y0-1; y <= y0+1; ++y) {
+						occupied[{x, y}]++;
 					}
 				}
 			}
 		}
 		VI c = cars(me());
 		int n = c.size();
-		VVVI distc(n, dist);
-		VVVP last(n, VVP(rows(), VP(cols())));
-		VP targets(n, {-1, -1});
-		priority_queue<pair<ii, ii> > q;
-		for (int i = 0; i < n; ++i) {
-			Unit u = unit(c[i]);
-			int x0 = u.pos.i, y0 = u.pos.j;
-			priority_queue<pair<int, ii> > q1;
-			q1.push({0, {x0, y0}});
-			distc[i][x0][y0] = 0;
-			dijkstra2(q1, distc[i], last[i]);
-			for (int j = 0; j < rows(); ++j) {
-				for (int k = 0; k < cols(); ++k) {
-					int z = cell(j, k).id;
-					if (z != -1 and unit(z).type == Warrior and unit(z).player != me() and distc[i][j][k] > -1000 and distc[i][j][k] < 1) {
-						q.push({{distc[i][j][k], i}, {j, k}});
-					}
-				}
-			}
-		}
-		while (q.size() > 0) {
-			int i = q.top().first.second;
-			int x = q.top().second.first, y = q.top().second.second;
-			if (targets[i].first == -1) targets[i] = {x, y};
-			q.pop();
-		}
 		for (int i = 0; i < n; ++i) {
 			Unit u = unit(c[i]);
 			int x0 = u.pos.i, y0 = u.pos.j;
 			int best = 8, value = -99999999;
 			int x1 = x0, y1 = y0;
-			ii opt = targets[i];
-			ii myp = {x0, y0};
-			while (opt.first != -1 and last[i][opt.first][opt.second] != myp) opt = last[i][opt.first][opt.second];
 			for (int j = 0; j < 8; ++j) {
 				int x = x0 + dx[j], y = y0 + dy[j];
 				if (passable_c(x, y)) {
 					int score = 0;
 					Cell k = cell(x, y);
-					if (dist[x][y] == 1) score = -100000000;
+					if (k.type == Road) score += 10000;
+					if (occupied[{x, y}] >= 2) score = -100000000;
 					else if (j != 8 and k.id != -1) {
 						if (unit(k.id).player == me()) score = -100000000;
 						else score = 100000000;
 					}
-					else if (u.food < 30) {
-						score = dist_f[x][y];
-						if (k.type != Road) score -= 20;
-					}
+					else if (u.food < 30) score = dist_f[x][y];
 					else {
 						score = dist_u[x][y];
-						if (k.type != Road) score -= 20;
-						if (opt.first == x and opt.second == y) score += 5000;
+						if (k.type != Road and score < -12) score -= 4;
 					}
 					if (score > value) {
 						best = j;
@@ -390,7 +327,7 @@ struct PLAYER_NAME : public Player {
 			}
 			if (can_move(c[i]) and best != 8) {
 				command(c[i], Dir(best));
-				dist[x1][y1] = 1;
+				occupied[{x1, y1}]++;
 			}
 		}
 	}

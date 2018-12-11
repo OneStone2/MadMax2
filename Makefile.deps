@@ -8,6 +8,8 @@ AIVox3b.o: AIVox3b.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
 AIVox3c.o: AIVox3c.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
+AIVox3d.o: AIVox3d.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
+ State.hh Action.hh Random.hh Registry.hh
 AIVox4.o: AIVox4.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
  State.hh Action.hh Random.hh Registry.hh
 AIVox4b.o: AIVox4b.cc Player.hh Info.hh Settings.hh Structs.hh Utils.hh \
